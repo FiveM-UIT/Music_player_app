@@ -59,6 +59,7 @@ const timerDisplay = document.getElementById('timerDisplay');
 const timerValue = document.getElementById('timerValue');
 const themeToggle = document.getElementById('themeToggle');
 const timerSlider = document.getElementById('timerSlider');
+const timerPreset = document.getElementById('timerPreset');
 
 // Audio Object
 const audio = new Audio();
@@ -716,24 +717,24 @@ window.addEventListener('load', () => {
             loadAndPlayTrack();
         }
     }
-    document.querySelectorAll('.dropdown-item[data-timer]').forEach(item => {
-        item.addEventListener('click', handleSleepTimerDropdown);
-    });
 });
-
-// Update sleep timer from dropdown
-function handleSleepTimerDropdown(e) {
-    const minutes = parseInt(e.target.dataset.timer);
-    if (!isNaN(minutes)) {
-        setSleepTimer(minutes);
-        if (timerSlider) timerSlider.value = minutes;
-    }
-}
 
 // Update sleep timer from slider
 if (timerSlider) {
     timerSlider.addEventListener('input', (e) => {
         const minutes = parseInt(e.target.value);
         setSleepTimer(minutes);
+    });
+}
+
+if (timerPreset && timerSlider) {
+    timerPreset.addEventListener('change', (e) => {
+        const minutes = parseInt(e.target.value);
+        if (!isNaN(minutes)) {
+            timerSlider.value = minutes;
+            setSleepTimer(minutes);
+        }
+        // Reset dropdown to 'Preset' after selection
+        timerPreset.selectedIndex = 0;
     });
 }

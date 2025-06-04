@@ -434,3 +434,72 @@ body {
 .time-input {
     width: 80px;
 }
+
+/* Progress bar color in light mode */
+:root .progress-bar {
+    background: var(--music-progress, linear-gradient(90deg, #8b5cf6 0%, #ec4899 100%)) !important;
+}
+
+/* Sleep timer slider color in light mode */
+:root #timerSlider {
+    accent-color: var(--music-accent, #8b5cf6);
+}
+
+/* Custom thumb and track for sleep timer slider in light mode */
+:root #timerSlider::-webkit-slider-thumb {
+    background: var(--music-accent, #8b5cf6);
+    border: 2px solid #fff;
+}
+:root #timerSlider::-webkit-slider-runnable-track {
+    background: linear-gradient(90deg, #8b5cf6 0%, #ec4899 100%);
+    height: 6px;
+    border-radius: 4px;
+}
+#timerSlider::-moz-range-thumb {
+    background: var(--music-accent, #8b5cf6);
+    border: 2px solid #fff;
+}
+#timerSlider::-moz-range-track {
+    background: linear-gradient(90deg, #8b5cf6 0%, #ec4899 100%);
+    height: 6px;
+    border-radius: 4px;
+}
+#timerSlider::-ms-thumb {
+    background: var(--music-accent, #8b5cf6);
+    border: 2px solid #fff;
+}
+#timerSlider::-ms-fill-lower, #timerSlider::-ms-fill-upper {
+    background: linear-gradient(90deg, #8b5cf6 0%, #ec4899 100%);
+    border-radius: 4px;
+}
+
+/* Volume slider color in light mode */
+:root #volumeSlider {
+    accent-color: var(--music-accent, #8b5cf6);
+}
+:root #volumeSlider::-webkit-slider-thumb {
+    background: var(--music-accent, #8b5cf6);
+    border: 2px solid #fff;
+}
+:root #volumeSlider::-webkit-slider-runnable-track {
+    background: linear-gradient(90deg, #8b5cf6 0%, #ec4899 100%);
+    height: 6px;
+    border-radius: 4px;
+}
+#volumeSlider::-moz-range-thumb {
+    background: var(--music-accent, #8b5cf6);
+    border: 2px solid #fff;
+}
+#volumeSlider::-moz-range-track {
+    background: linear-gradient(90deg, #8b5cf6 0%, #ec4899 100%);
+    height: 6px;
+    border-radius: 4px;
+}
+#volumeSlider::-ms-thumb {
+    background: var(--music-accent, #8b5cf6);
+    border: 2px solid #fff;
+}
+#volumeSlider::-ms-fill-lower, #volumeSlider::-ms-fill-upper {
+    background: linear-gradient(90deg, #8b5cf6 0%, #ec4899 100%);
+    border-radius: 4px;
+}
