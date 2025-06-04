@@ -1,20 +1,27 @@
-// Sample music data - Replace with your own music files
+// Sample music data - Load from musics directory
 const musicList = [
     {
         id: 1,
-        title: "Nơi này có anh",
-        artist: "Sơn Tùng M-TP ",
-        file: "./assets/music/music_1.mp3",
-        cover: "./assets/images/image_1.png",
-        lyrics: `
-`
+        title: "Teddy Swims - idontwannabeyouanymore (Billie Eilish Cover)",
+        artist: "Unknown Artist",
+        file: "./musics/Teddy Swims - idontwannabeyouanymore (Billie Eilish Cover).mp3",
+        cover: "./assets/images/default-album.jpg",
+        lyrics: ""
     },
     {
         id: 2,
-        title: "Sample Song 2",
-        artist: "Artist 2",
-        file: "./assets/music/song2.mp3",
-        cover: "./assets/images/cover2.jpg",
+        title: "New West - Those Eyes (Home Session)",
+        artist: "Unknown Artist",
+        file: "./musics/New West - Those Eyes (Home Session).mp3",
+        cover: "./assets/images/default-album.jpg",
+        lyrics: ""
+    },
+    {
+        id: 3,
+        title: "Stromae, Pomme, Coldplay - Ma Meilleure Ennemie ft. Coldplay (from Arcane) [Official Lyric Video]",
+        artist: "Unknown Artist",
+        file: "./musics/Stromae, Pomme, Coldplay - Ma Meilleure Ennemie ft. Coldplay (from Arcane) [Official Lyric Video].mp3",
+        cover: "./assets/images/default-album.jpg",
         lyrics: ""
     }
 ];
@@ -51,6 +58,7 @@ const speedControls = document.getElementById('speedControls');
 const timerDisplay = document.getElementById('timerDisplay');
 const timerValue = document.getElementById('timerValue');
 const themeToggle = document.getElementById('themeToggle');
+const timerSlider = document.getElementById('timerSlider');
 
 // Audio Object
 const audio = new Audio();
@@ -69,6 +77,7 @@ let animationId;
 // Sleep Timer variables
 let sleepTimerId = null;
 let timerUpdateInterval = null;
+let sleepEndTime = null;
 
 // Parse lyrics with timestamps
 function parseLyrics(lyricsText) {
@@ -123,24 +132,17 @@ function syncLyrics(currentTime) {
         if (activeLyricLine) {
             activeLyricLine.classList.remove('active');
         }
-        
         const newActiveLine = document.querySelector(`.lyrics-line[data-time="${currentLineTime}"]`);
         if (newActiveLine) {
             newActiveLine.classList.add('active');
             activeLyricLine = newActiveLine;
-            
             const container = document.getElementById('lyricsContainer');
-            
-            // Get the position of the line relative to the container
-            const containerRect = container.getBoundingClientRect();
-            const lineRect = newActiveLine.getBoundingClientRect();
-            const relativeTop = lineRect.top - containerRect.top;
-            
-            // If the line is not fully visible, scroll to it
-            if (relativeTop < 0 || relativeTop > (containerRect.height - lineRect.height)) {
-                const scrollAdjustment = container.clientHeight * 0.3; // Show line at 30% from top
-                container.scrollTop = newActiveLine.offsetTop - scrollAdjustment;
-            }
+            // Center the active line in the container
+            const containerHeight = container.clientHeight;
+            const lineOffset = newActiveLine.offsetTop;
+            const lineHeight = newActiveLine.offsetHeight;
+            const scrollTo = lineOffset - (containerHeight / 2) + (lineHeight / 2);
+            container.scrollTo({ top: scrollTo, behavior: 'smooth' });
         }
     }
 }
@@ -409,52 +411,81 @@ function drawVisualizer() {
     });
 }
 
-// Set sleep timer
+// Set sleep timer (in minutes)
 function setSleepTimer(minutes) {
-    // Clear existing timer if any
+    // Clear any existing timer
     if (sleepTimerId) {
         clearTimeout(sleepTimerId);
-        clearInterval(timerUpdateInterval);
         sleepTimerId = null;
     }
+    if (timerUpdateInterval) {
+        clearInterval(timerUpdateInterval);
+        timerUpdateInterval = null;
+    }
+    sleepEndTime = null;
 
-    // If minutes is 0, cancel the timer
+    // Always update the slider to match
+    if (timerSlider) timerSlider.value = minutes;
+
+    // If minutes is 0, cancel the timer and hide display
     if (minutes === 0) {
         timerDisplay.style.display = 'none';
+        if (timerSlider) timerSlider.value = 0;
+        timerValue.textContent = '0:00';
         return;
     }
 
-    // Calculate end time
-    const endTime = Date.now() + minutes * 60 * 1000;
-
-    // Show timer display
+    // Set the end time
+    sleepEndTime = Date.now() + minutes * 60 * 1000;
     timerDisplay.style.display = 'inline-block';
 
     // Update timer display
     function updateTimerDisplay() {
-        const remaining = Math.max(0, endTime - Date.now());
+        const remaining = Math.max(0, sleepEndTime - Date.now());
         const minutesLeft = Math.floor(remaining / 60000);
         const secondsLeft = Math.floor((remaining % 60000) / 1000);
         timerValue.textContent = `${minutesLeft}:${secondsLeft.toString().padStart(2, '0')}`;
-
-        // If timer has finished, clear the interval
         if (remaining <= 0) {
             clearInterval(timerUpdateInterval);
         }
     }
-
-    // Update display immediately and then every second
     updateTimerDisplay();
     timerUpdateInterval = setInterval(updateTimerDisplay, 1000);
 
     // Set timeout to stop music
     sleepTimerId = setTimeout(() => {
         if (isPlaying) {
-            playTrack(); // This will pause the music
+            playTrack(); // Pause the music
         }
         timerDisplay.style.display = 'none';
+        if (timerSlider) timerSlider.value = 0;
+        timerValue.textContent = '0:00';
         clearInterval(timerUpdateInterval);
+        sleepTimerId = null;
+        timerUpdateInterval = null;
+        sleepEndTime = null;
     }, minutes * 60 * 1000);
+}
+
+// Show notification for new song
+function showSongNotification(song) {
+    if (window.Notification) {
+        if (Notification.permission === 'granted') {
+            new Notification('Now Playing', {
+                body: song.title,
+                icon: song.cover
+            });
+        } else if (Notification.permission !== 'denied') {
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    new Notification('Now Playing', {
+                        body: song.title,
+                        icon: song.cover
+                    });
+                }
+            });
+        }
+    }
 }
 
 // Modified loadTrack function
@@ -467,6 +498,13 @@ function loadTrack() {
     albumArt.src = song.cover;
     updatePlaylistActive();
     updatePlayButtonStates();
+
+    // Update URL to reflect current song
+    const url = `${window.location.pathname}?song=${song.id}`;
+    window.history.replaceState({}, '', url);
+
+    // Show notification for new song
+    showSongNotification(song);
 
     // Load lyrics if available
     currentLyrics.clear();
@@ -561,7 +599,6 @@ function updateProgress() {
 // Format time in minutes and seconds
 function formatTime(seconds) {
     if (isNaN(seconds)) return "0:00";
-    
     const minutes = Math.floor(seconds / 60);
     seconds = Math.floor(seconds % 60);
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
@@ -654,8 +691,49 @@ document.getElementById('saveLyricsBtn').addEventListener('click', () => {
     bootstrap.Modal.getInstance(document.getElementById('lyricsEditorModal')).hide();
 });
 
+// Download and Share functionality
+function shareCurrentSong() {
+    // Always copy the current full URL (with song id)
+    navigator.clipboard.writeText(window.location.href).then(() => {
+        alert('Song link copied to clipboard!');
+    });
+}
+
 // Initialize the player when the page loads
 window.addEventListener('load', () => {
     initializePlayer();
     setVolume(100); // Set initial volume
+    // Remove downloadBtn event listener
+    const shareBtn = document.getElementById('shareBtn');
+    if (shareBtn) shareBtn.addEventListener('click', shareCurrentSong);
+    // On page load, check for song id in URL and play that song if present
+    const urlParams = new URLSearchParams(window.location.search);
+    const songId = urlParams.get('song');
+    if (songId) {
+        const songIndex = musicList.findIndex(song => song.id === parseInt(songId));
+        if (songIndex !== -1) {
+            currentTrackIndex = songIndex;
+            loadAndPlayTrack();
+        }
+    }
+    document.querySelectorAll('.dropdown-item[data-timer]').forEach(item => {
+        item.addEventListener('click', handleSleepTimerDropdown);
+    });
 });
+
+// Update sleep timer from dropdown
+function handleSleepTimerDropdown(e) {
+    const minutes = parseInt(e.target.dataset.timer);
+    if (!isNaN(minutes)) {
+        setSleepTimer(minutes);
+        if (timerSlider) timerSlider.value = minutes;
+    }
+}
+
+// Update sleep timer from slider
+if (timerSlider) {
+    timerSlider.addEventListener('input', (e) => {
+        const minutes = parseInt(e.target.value);
+        setSleepTimer(minutes);
+    });
+}
